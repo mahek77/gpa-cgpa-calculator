@@ -1,0 +1,691 @@
+/* ===================================================================
+   SZABIST GPA & CGPA Calculator
+   Token system
+   Color   : --pine (deep SZABIST green), --mint (living accent),
+             --paper (light surface), --ink (dark surface)
+   Type    : Space Grotesk (display) / Inter (body) / JetBrains Mono (data)
+   Layout  : two-column ledger + gauge sidebar
+   Signature: the arc gauge — a fuel-style dial for cumulative standing
+=================================================================== */
+
+:root{
+  --pine: #0F5A3C;
+  --pine-dark: #0A3D28;
+  --mint: #4ADE94;
+  --mint-soft: #9AF0C4;
+
+  --bg-1: #EAF3EC;
+  --bg-2: #F7FAF6;
+  --bg-3: #DCEEE0;
+
+  --surface: rgba(255,255,255,0.55);
+  --surface-strong: rgba(255,255,255,0.72);
+  --surface-border: rgba(255,255,255,0.65);
+
+  --ink-900: #0C1F17;
+  --ink-700: #1E3A2C;
+  --ink-500: #4C6357;
+  --ink-300: #7C9186;
+
+  --danger: #C0533E;
+  --shadow: 0 20px 60px -25px rgba(10, 40, 25, 0.35);
+  --radius-lg: 26px;
+  --radius-md: 16px;
+  --radius-sm: 10px;
+
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  color-scheme: light;
+}
+
+html[data-theme="dark"]{
+  --bg-1: #081712;
+  --bg-2: #0B1F17;
+  --bg-3: #0E2A1E;
+
+  --surface: rgba(18, 40, 30, 0.55);
+  --surface-strong: rgba(20, 46, 34, 0.72);
+  --surface-border: rgba(120, 200, 160, 0.16);
+
+  --ink-900: #EAF6EF;
+  --ink-700: #CFE6D8;
+  --ink-500: #9CC1AC;
+  --ink-300: #6E8E7C;
+
+  --pine: #2E9E6C;
+  --mint: #5CF0A4;
+
+  --shadow: 0 25px 70px -25px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+*, *::before, *::after{ box-sizing: border-box; }
+
+html, body{
+  margin: 0;
+  min-height: 100%;
+}
+
+body{
+  font-family: var(--font-body);
+  color: var(--ink-900);
+  background: var(--bg-2);
+  position: relative;
+  overflow-x: hidden;
+  transition: background 0.5s ease, color 0.4s ease;
+}
+
+/* ---------- ambient background ---------- */
+
+.bg-mesh{
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(60% 50% at 12% 8%, var(--bg-3) 0%, transparent 60%),
+    radial-gradient(50% 45% at 90% 15%, rgba(74,222,148,0.25) 0%, transparent 65%),
+    radial-gradient(70% 60% at 50% 100%, var(--bg-1) 0%, transparent 70%),
+    linear-gradient(160deg, var(--bg-2), var(--bg-1) 60%, var(--bg-3));
+  transition: background 0.6s ease;
+}
+
+.bg-grain{
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.05;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------- glass primitive ---------- */
+
+.glass-card{
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: var(--shadow);
+  padding: 26px 26px 24px;
+  transition: transform 0.35s ease, box-shadow 0.35s ease, background 0.4s ease, border-color 0.4s ease;
+}
+
+/* ---------- topbar ---------- */
+
+.topbar{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px clamp(20px, 5vw, 56px) 10px;
+}
+
+.brand{
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-mark{
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 6px 14px rgba(15,90,60,0.35));
+}
+
+.brand-eyebrow{
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pine);
+  font-weight: 600;
+}
+
+.brand-text h1{
+  margin: 2px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(20px, 2.4vw, 27px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink-900);
+}
+
+.topbar-actions{
+  display: flex;
+  gap: 10px;
+}
+
+.icon-btn{
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  color: var(--pine);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+.icon-btn:hover{ transform: translateY(-2px); background: var(--surface-strong); }
+.icon-btn:active{ transform: translateY(0); }
+.icon-btn.danger{ color: var(--danger); }
+
+/* ---------- mode switch ---------- */
+
+.mode-switch-wrap{
+  display: flex;
+  justify-content: center;
+  padding: 6px clamp(20px, 5vw, 56px) 4px;
+}
+
+.mode-switch{
+  display: inline-flex;
+  gap: 4px;
+  padding: 5px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow);
+}
+
+.mode-btn{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 9px 26px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--ink-500);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease;
+}
+
+.mode-btn-sub{
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.mode-btn:hover{ color: var(--ink-900); }
+
+.mode-btn.active{
+  background: linear-gradient(135deg, var(--pine), var(--mint));
+  color: #ffffff;
+  box-shadow: 0 8px 20px -8px rgba(15,90,60,0.5);
+}
+.mode-btn.active:hover{ color: #ffffff; }
+.mode-btn.active .mode-btn-sub{ opacity: 0.85; }
+
+/* ---------- layout ---------- */
+
+.layout{
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 22px;
+  padding: 14px clamp(20px, 5vw, 56px) 30px;
+  align-items: start;
+}
+
+.ledger-column{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.summary-column{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 20px;
+}
+
+/* ---------- semester card ---------- */
+
+.semester-list{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.semester-card{
+  animation: rise 0.45s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes rise{
+  from{ opacity: 0; transform: translateY(14px) scale(0.99); }
+  to{ opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.semester-head{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.semester-title-input{
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink-900);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  padding: 4px 2px;
+  max-width: 60%;
+  transition: border-color 0.2s ease;
+}
+.semester-title-input:hover,
+.semester-title-input:focus{
+  border-bottom: 1px solid var(--pine);
+  outline: none;
+}
+
+.semester-head-right{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.semester-gpa-pill{
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  background: var(--surface-strong);
+  border: 1px solid var(--surface-border);
+  border-radius: 999px;
+  padding: 6px 14px;
+}
+
+.pill-label{
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-500);
+}
+
+.pill-value{
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--pine);
+}
+
+/* course table */
+
+.course-table{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.course-row{
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 76px 100px 32px;
+  gap: 10px;
+  align-items: center;
+}
+
+.course-row--head{
+  padding: 0 4px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-300);
+}
+
+.course-rows{
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.course-rows .course-row{
+  background: var(--surface-strong);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  padding: 9px 10px;
+  animation: rise 0.3s ease both;
+}
+
+.course-name-input,
+.course-credits-select,
+.course-grade-select{
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink-900);
+  background: transparent;
+  border: none;
+  outline: none;
+  width: 100%;
+}
+
+.course-credits-select,
+.course-grade-select{
+  font-family: var(--font-mono);
+  cursor: pointer;
+  padding: 4px 2px;
+}
+
+.course-name-input::placeholder{ color: var(--ink-300); }
+
+.remove-course-btn{
+  width: 28px;
+  height: 28px;
+}
+
+.add-course-btn,
+.add-semester-btn{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 11px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--surface-border);
+  background: transparent;
+  color: var(--pine);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+.add-course-btn:hover,
+.add-semester-btn:hover{
+  background: var(--surface-strong);
+  border-color: var(--pine);
+  transform: translateY(-1px);
+}
+
+.add-semester-btn{
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  backdrop-filter: blur(14px);
+  padding: 15px;
+  font-size: 14.5px;
+}
+
+/* ---------- cgpa-mode semester card (no courses, just GPA + credits) ---------- */
+
+.cgpa-fields{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.cgpa-field{
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--surface-strong);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+.cgpa-field-label{
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-500);
+}
+
+.semester-credits-input,
+.semester-gpa-input{
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--pine);
+  background: transparent;
+  border: none;
+  outline: none;
+  width: 100%;
+  -moz-appearance: textfield;
+}
+
+.semester-credits-input::-webkit-outer-spin-button,
+.semester-credits-input::-webkit-inner-spin-button,
+.semester-gpa-input::-webkit-outer-spin-button,
+.semester-gpa-input::-webkit-inner-spin-button{
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.cgpa-semester-card .semester-head{ margin-bottom: 14px; }
+
+/* semester GPA progress bar */
+
+.semester-progress-track{
+  margin-top: 18px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(120,145,134,0.18);
+  overflow: hidden;
+}
+
+.semester-progress-fill{
+  height: 100%;
+  width: 0%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--pine), var(--mint));
+  transition: width 0.6s cubic-bezier(.22,1,.36,1);
+}
+
+/* ---------- gauge card (signature element) ---------- */
+
+.card-eyebrow{
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-500);
+  margin-bottom: 6px;
+}
+
+.gauge-wrap{
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-top: 6px;
+}
+
+.gauge-svg{
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+#gaugeTrack{
+  stroke: rgba(120,145,134,0.18);
+  stroke-width: 14;
+}
+
+#gaugeFill{
+  stroke-width: 14;
+  stroke-dasharray: 251;
+  stroke-dashoffset: 251;
+  transition: stroke-dashoffset 0.9s cubic-bezier(.22,1,.36,1);
+}
+
+.gauge-tick{
+  stroke: var(--ink-300);
+  stroke-width: 2;
+}
+
+.gauge-tick-label{
+  font-family: var(--font-mono);
+  font-size: 9px;
+  fill: var(--ink-300);
+}
+
+.gauge-readout{
+  position: absolute;
+  bottom: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.gauge-number{
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 40px;
+  color: var(--ink-900);
+  line-height: 1;
+  transition: color 0.4s ease;
+}
+
+.gauge-label{
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-300);
+  margin-top: 4px;
+}
+
+.gauge-stats{
+  display: flex;
+  justify-content: space-around;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--surface-border);
+}
+
+.stat{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.stat-value{
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--pine);
+}
+
+.stat-label{
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-300);
+}
+
+/* legend card */
+
+.legend-grid{
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.legend-item{
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  align-items: baseline;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-500);
+  border-bottom: 1px dotted var(--surface-border);
+  padding-bottom: 5px;
+}
+
+.legend-item b{ color: var(--ink-900); font-weight: 600; }
+.legend-item .legend-marks{ color: var(--ink-300); font-size: 11px; }
+.legend-item .legend-points{ color: var(--pine); font-weight: 600; text-align: right; }
+
+/* footer */
+
+.page-footer{
+  text-align: center;
+  padding: 10px 20px 34px;
+  font-size: 12.5px;
+  color: var(--ink-300);
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 900px){
+  .layout{
+    grid-template-columns: 1fr;
+  }
+  .summary-column{
+    position: static;
+  }
+  .course-row{
+    grid-template-columns: minmax(0,1fr) 60px 90px 28px;
+  }
+}
+
+@media (max-width: 520px){
+  .mode-btn{ padding: 8px 16px; font-size: 12.5px; }
+  .mode-btn-sub{ font-size: 8.5px; }
+  .topbar{ padding: 20px 16px 6px; }
+  .layout{ padding: 12px 14px 24px; }
+  .glass-card{ padding: 18px 16px 18px; }
+  .brand-text h1{ font-size: 17px; }
+  .course-row--head span:nth-child(1){ display:none; }
+  .course-row{
+    grid-template-columns: 1fr 52px 82px 26px;
+  }
+  .gauge-number{ font-size: 32px; }
+}
+
+/* ---------- reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce){
+  *{
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* focus visibility */
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible{
+  outline: 2px solid var(--mint);
+  outline-offset: 2px;
+}
+
+/* remove course fade-out */
+.course-row.removing{
+  animation: fadeOut 0.25s ease forwards;
+}
+@keyframes fadeOut{
+  to{ opacity: 0; transform: scale(0.95); }
+}
+.semester-card.removing{
+  animation: fadeOut 0.3s ease forwards;
+}

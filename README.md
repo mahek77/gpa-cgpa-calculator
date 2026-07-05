@@ -1,11 +1,11 @@
-# SZABIST GPA & CGPA Ledger
+# GPA & CGPA Ledger
 
 A polished, single-purpose web app for calculating semester GPA and cumulative CGPA — built with SZABIST's green identity, glassmorphism cards, and a signature arc gauge that reads your standing at a glance.
 
 ## Files
 
 ```
-SZABIST-GPA-Calculator/
+GPA-Calculator/
 ├── index.html   → page structure & templates
 ├── style.css    → design system (tokens, glass cards, gauge, dark mode, responsive rules)
 ├── script.js    → state, GPA/CGPA math, rendering, localStorage persistence
@@ -35,7 +35,7 @@ No build step, no dependencies. Open `index.html` in any modern browser, or serv
 
 ## Grading scale used
 
-SZABIST's official Grading Plan (7):
+Grading Plan (7):
 
 | Marks  | Grade | GPA  |
 |--------|-------|------|
